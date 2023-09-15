@@ -9,7 +9,7 @@ import (
 
 func SaveFile(fileStorageService service.FileStorage) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		if request.Method != "GET" {
+		if request.Method != "POST" {
 			http.Error(writer, fmt.Sprintf("method %s is not supported", request.Method), http.StatusBadRequest)
 			return
 		}

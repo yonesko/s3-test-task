@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/yonesko/s3-test-task/internal/filestorage/api"
 	"github.com/yonesko/s3-test-task/internal/filestorage/memoryfilestorage"
+	"github.com/yonesko/s3-test-task/pkg/httplog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,7 +20,7 @@ func main() {
 	server := http.Server{Addr: ":8000", ReadTimeout: time.Second * 3}
 
 	fileStorage := memoryfilestorage.NewStorage()
-	http.HandleFunc("/file", api.SaveFile(fileStorage))
+	http.HandleFunc("/file", httplog.Log(api.SaveFile(fileStorage)))
 
 	go func() {
 		err := server.ListenAndServe()
