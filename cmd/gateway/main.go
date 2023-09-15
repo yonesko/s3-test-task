@@ -16,11 +16,9 @@ func main() {
 
 	server := http.Server{Addr: ":8000", ReadTimeout: time.Second * 3}
 
-	//var fg service.FileGateway
-
 	http.HandleFunc("/file", func(writer http.ResponseWriter, request *http.Request) {
-		if request.Method == "GET" {
-
+		if request.Method != "GET" {
+			return
 		}
 	})
 
