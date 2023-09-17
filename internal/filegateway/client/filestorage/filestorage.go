@@ -26,7 +26,6 @@ func NewClient() Client {
 func (c client) SaveFile(ctx context.Context, serverUrl string, file model.File) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	defer writer.Close()
 	part, err := writer.CreateFormFile("file", file.Name)
 	if err != nil {
 		return fmt.Errorf("CreateFormFile err: %w", err)
@@ -35,13 +34,16 @@ func (c client) SaveFile(ctx context.Context, serverUrl string, file model.File)
 	if err != nil {
 		return fmt.Errorf("Copy err: %w", err)
 	}
+	err = writer.Close()
+	if err != nil {
+		return fmt.Errorf("Close err: %w", err)
+	}
 	request, err := http.NewRequest("POST", fmt.Sprintf("http://%s/file", serverUrl), body)
 	if err != nil {
 		return fmt.Errorf("NewRequest err: %w", err)
 	}
 	request.Header.Add("Content-Type", writer.FormDataContentType())
-	client := http.DefaultClient
-	response, err := client.Do(request)
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return fmt.Errorf("Do err: %w", err)
 	}
