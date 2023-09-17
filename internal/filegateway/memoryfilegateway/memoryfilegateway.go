@@ -10,6 +10,7 @@ import (
 	"github.com/yonesko/s3-test-task/internal/model"
 	"io"
 	"log"
+	"math"
 	"sync"
 )
 
@@ -61,7 +62,7 @@ func (s *gateway) SaveFile(ctx context.Context, file model.File) error {
 		return fmt.Errorf("ReadAll err: %w", err)
 	}
 	var parts []filePart
-	for i, chunk := range lo.Chunk(buf, len(buf)/len(s.storageServers)) {
+	for i, chunk := range lo.Chunk(buf, int(math.Ceil(float64(len(buf))/float64(len(s.storageServers))))) {
 		part := filePart{
 			storageServer: s.storageServers[i],
 			partNum:       i,
