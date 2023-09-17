@@ -7,6 +7,7 @@ import (
 	"github.com/yonesko/s3-test-task/internal/filestorage/service"
 	"github.com/yonesko/s3-test-task/internal/model"
 	"io"
+	"log"
 	"sync"
 )
 
@@ -28,6 +29,7 @@ func (s *storage) SaveFile(_ context.Context, file model.File) error {
 		return fmt.Errorf("SaveFile ReadAll err:%w", err)
 	}
 	s.m[file.Name] = bytes
+	log.Println("saved", file.Name, len(bytes), "bytes")
 	return nil
 }
 
