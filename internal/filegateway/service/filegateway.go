@@ -7,6 +7,7 @@ import (
 )
 
 type FileGateway interface {
+	RegisterFileStorageServer(url string) error
 	SaveFile(ctx context.Context, file model.File) error
-	GetFile(ctx context.Context, name string) (io.ReadCloser, error)
+	GetFile(ctx context.Context, name string) (io.Reader, error)
 }

@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/yonesko/s3-test-task/internal/filegateway/api"
+	"github.com/yonesko/s3-test-task/internal/filegateway/memoryfilegateway"
+	"github.com/yonesko/s3-test-task/pkg/httplog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,11 +19,17 @@ func main() {
 
 	server := http.Server{Addr: ":8000", ReadTimeout: time.Second * 3}
 
-	http.HandleFunc("/file", func(writer http.ResponseWriter, request *http.Request) {
-		if request.Method != "GET" {
-			return
+	fileStorage := memoryfilegateway.NewGateway()
+	http.HandleFunc("/file", httplog.Log(func(writer http.ResponseWriter, request *http.Request) {
+		switch request.Method {
+		case "GET":
+			api.GetFile(fileStorage)(writer, request)
+		case "POST":
+			api.SaveFile(fileStorage)(writer, request)
+		default:
+			http.Error(writer, fmt.Sprintf("method %s is not supported", request.Method), http.StatusBadRequest)
 		}
-	})
+	}))
 
 	go func() {
 		err := server.ListenAndServe()
