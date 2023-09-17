@@ -8,67 +8,74 @@ import (
 	"github.com/yonesko/s3-test-task/internal/filegateway/client/filestorage"
 	"github.com/yonesko/s3-test-task/internal/filegateway/service"
 	"github.com/yonesko/s3-test-task/internal/model"
-	"golang.org/x/sync/errgroup"
 	"io"
 	"sync"
 )
 
-type fileParts struct {
-	storageServers []string //file storage server urls
+var (
+	ErrNoStorageAvailable = fmt.Errorf("no storageServers availble")
+)
+
+type filePart struct {
+	storageServer string
+	partNum       int
+	originName    string
 }
 
-func toPartName(name string, i int) string {
-	return fmt.Sprintf("%s_part_%d", name, i)
+func (p filePart) name() string {
+	return fmt.Sprintf("%s_part_%d", p.originName, p.partNum)
 }
 
 type gateway struct {
 	fileStorageClient filestorage.Client
 	l                 sync.Mutex //TODO use multiple locks
-	files             map[string]fileParts
-	servers           map[string]bool
+	files             map[string][]filePart
+	storageServers    []string //available storageServers
 }
 
-func NewGateway() service.FileGateway {
-	return &gateway{files: make(map[string]fileParts), servers: make(map[string]bool)}
+func NewGateway(fileStorageClient filestorage.Client) service.FileGateway {
+	return &gateway{files: make(map[string][]filePart), fileStorageClient: fileStorageClient}
 }
 
 func (s *gateway) RegisterFileStorageServer(url string) error {
 	s.l.Lock()
 	defer s.l.Unlock()
-	s.servers[url] = true
+	if !lo.Contains(s.storageServers, url) {
+		s.storageServers = append(s.storageServers, url)
+	}
 	return nil
 }
 
+// TODO rewrite to concurrent
 func (s *gateway) SaveFile(ctx context.Context, file model.File) error {
 	s.l.Lock()
 	defer s.l.Unlock()
-	storageServers := lo.Keys(s.servers)
+	if len(s.storageServers) == 0 {
+		return ErrNoStorageAvailable
+	}
 
 	buf, err := io.ReadAll(file.Body) //TODO avoid read all, using content size header
 	if err != nil {
 		return fmt.Errorf("ReadAll err: %w", err)
 	}
-	group := errgroup.Group{}
-	for i, chunk := range lo.Chunk(buf, len(storageServers)) {
-		chunk := chunk
-		i := i
-		group.Go(func() error {
-			err = s.fileStorageClient.SaveFile(ctx, storageServers[i], model.File{
-				Name: toPartName(file.Name, i),
-				Body: bytes.NewBuffer(chunk),
-			})
-			if err != nil {
-				return fmt.Errorf("SaveFile err: %w", err)
-			}
-			return nil
+	var parts []filePart
+	for i, chunk := range lo.Chunk(buf, len(buf)/len(s.storageServers)) {
+		part := filePart{
+			storageServer: s.storageServers[i],
+			partNum:       i,
+			originName:    file.Name,
+		}
+		err = s.fileStorageClient.SaveFile(ctx, part.storageServer, model.File{
+			Name: part.name(),
+			Body: bytes.NewBuffer(chunk),
 		})
-	}
-	err = group.Wait()
-	if err != nil {
-		return err
+		if err != nil {
+			return fmt.Errorf("SaveFile err: %w", err)
+		}
+		parts = append(parts, part)
 	}
 
-	s.files[file.Name] = fileParts{storageServers: storageServers}
+	s.files[file.Name] = parts
 	return nil
 }
 
@@ -81,9 +88,9 @@ func (s *gateway) GetFile(ctx context.Context, name string) (io.Reader, error) {
 		return &bytes.Buffer{}, nil
 	}
 	buffer := &bytes.Buffer{}
-	for i, storageServer := range parts.storageServers {
-		partName := toPartName(name, i)
-		file, err := s.fileStorageClient.GetFile(ctx, storageServer, partName)
+	for _, part := range parts {
+		partName := part.name()
+		file, err := s.fileStorageClient.GetFile(ctx, part.storageServer, partName)
 		if err != nil {
 			return &bytes.Buffer{}, nil
 		}
