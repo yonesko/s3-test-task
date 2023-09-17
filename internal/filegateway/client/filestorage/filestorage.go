@@ -22,6 +22,7 @@ func NewClient() Client {
 	return &client{}
 }
 
+// TODO use ctx
 func (c client) SaveFile(ctx context.Context, serverUrl string, file model.File) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -34,7 +35,7 @@ func (c client) SaveFile(ctx context.Context, serverUrl string, file model.File)
 	if err != nil {
 		return fmt.Errorf("Copy err: %w", err)
 	}
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s/file", serverUrl), body)
+	request, err := http.NewRequest("POST", fmt.Sprintf("http://%s/file", serverUrl), body)
 	if err != nil {
 		return fmt.Errorf("NewRequest err: %w", err)
 	}
@@ -52,7 +53,7 @@ func (c client) SaveFile(ctx context.Context, serverUrl string, file model.File)
 
 func (c client) GetFile(ctx context.Context, serverUrl string, name string) (io.Reader, error) {
 	//TODO use custom http client and connection pool
-	response, err := http.Get(fmt.Sprintf("%s/file?name=%s", serverUrl, name))
+	response, err := http.Get(fmt.Sprintf("http://%s/file?name=%s", serverUrl, name))
 	if err != nil {
 		return nil, err
 	}
