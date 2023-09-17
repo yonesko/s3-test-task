@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"github.com/yonesko/s3-test-task/internal/filestorage/api"
 	"github.com/yonesko/s3-test-task/internal/filestorage/memoryfilestorage"
@@ -10,16 +11,20 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
 
+var port = flag.Int("port", 8208, "port to listen")
+
 func main() {
+	flag.Parse()
 	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT)
 	defer stop()
 
 	//TODO move to client, retry
-	resp, err := http.Get("http://localhost:8361/register?host=localhost:8208")
+	resp, err := http.Get("http://localhost:8361/register?host=localhost:" + strconv.Itoa(*port))
 	if err != nil {
 		log.Fatal("cant register:", err)
 	}
@@ -27,7 +32,7 @@ func main() {
 		log.Fatal("cant register:", resp.Status)
 	}
 
-	server := http.Server{Addr: ":8208", ReadTimeout: time.Second * 3}
+	server := http.Server{Addr: ":" + strconv.Itoa(*port), ReadTimeout: time.Second * 3}
 
 	fileStorage := memoryfilestorage.NewStorage()
 	http.HandleFunc("/file", httplog.Log(func(writer http.ResponseWriter, request *http.Request) {
