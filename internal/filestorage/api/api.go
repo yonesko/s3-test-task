@@ -55,7 +55,5 @@ func GetFile(fileStorageService service.FileStorage) http.HandlerFunc {
 			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		writer.WriteHeader(http.StatusOK)
 	}
 }

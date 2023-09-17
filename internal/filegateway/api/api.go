@@ -53,7 +53,5 @@ func GetFile(fileGatewayService service.FileGateway) http.HandlerFunc {
 			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		writer.WriteHeader(http.StatusOK)
 	}
 }
