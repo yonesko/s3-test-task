@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func Test_gateway(t *testing.T) {
+func TestGateway_SaveFile(t *testing.T) {
 	t.Run("single servers save", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
