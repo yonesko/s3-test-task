@@ -19,7 +19,7 @@ func main() {
 	defer stop()
 
 	//TODO move to client, retry
-	resp, err := http.Get("http://localhost:8361/register")
+	resp, err := http.Get("http://localhost:8361/register?host=localhost:8208")
 	if err != nil {
 		log.Fatal("cant register:", err)
 	}

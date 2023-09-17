@@ -32,7 +32,7 @@ func main() {
 		}
 	}))
 	http.HandleFunc("/register", httplog.Log(func(writer http.ResponseWriter, request *http.Request) {
-		err := fileGateway.RegisterFileStorageServer(request.Host)
+		err := fileGateway.RegisterFileStorageServer(request.URL.Query().Get("host"))
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		}

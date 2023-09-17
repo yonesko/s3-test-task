@@ -17,7 +17,8 @@ func SaveFile(fileStorageService service.FileStorage) http.HandlerFunc {
 		}
 		file, fileHeader, err := request.FormFile("file")
 		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			log.Default().Printf("FormFile err: %s", err)
+			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		defer file.Close()
@@ -26,7 +27,8 @@ func SaveFile(fileStorageService service.FileStorage) http.HandlerFunc {
 			Body: file,
 		})
 		if err != nil {
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			log.Default().Printf("SaveFile err: %s", err)
+			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		writer.WriteHeader(http.StatusOK)
