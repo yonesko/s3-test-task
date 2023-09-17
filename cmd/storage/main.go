@@ -6,6 +6,7 @@ import (
 	"github.com/yonesko/s3-test-task/internal/filestorage/api"
 	"github.com/yonesko/s3-test-task/internal/filestorage/memoryfilestorage"
 	"github.com/yonesko/s3-test-task/pkg/httplog"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,7 +18,16 @@ func main() {
 	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT)
 	defer stop()
 
-	server := http.Server{Addr: ":8000", ReadTimeout: time.Second * 3}
+	//TODO move to client, retry
+	resp, err := http.Get("http://localhost:8361/register")
+	if err != nil {
+		log.Fatal("cant register:", err)
+	}
+	if resp.StatusCode != 200 {
+		log.Fatal("cant register:", resp.Status)
+	}
+
+	server := http.Server{Addr: ":8208", ReadTimeout: time.Second * 3}
 
 	fileStorage := memoryfilestorage.NewStorage()
 	http.HandleFunc("/file", httplog.Log(func(writer http.ResponseWriter, request *http.Request) {

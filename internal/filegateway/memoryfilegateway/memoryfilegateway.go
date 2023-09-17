@@ -9,6 +9,7 @@ import (
 	"github.com/yonesko/s3-test-task/internal/filegateway/service"
 	"github.com/yonesko/s3-test-task/internal/model"
 	"io"
+	"log"
 	"sync"
 )
 
@@ -41,6 +42,7 @@ func (s *gateway) RegisterFileStorageServer(url string) error {
 	s.l.Lock()
 	defer s.l.Unlock()
 	if !lo.Contains(s.storageServers, url) {
+		log.Println(url, "is registered")
 		s.storageServers = append(s.storageServers, url)
 	}
 	return nil
