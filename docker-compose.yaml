@@ -13,3 +13,14 @@ services:
       dockerfile: storage.Dockerfile
     depends_on:
       - gateway
+  test:
+    depends_on:
+      - storage
+      - gateway
+    image: alpine/curl
+    volumes:
+      - ./:/data
+    command: >
+      sh -c "curl -v -F file=@/data/docker-compose.yaml gateway:8361/file
+      && curl -v gateway:8361/file?name=docker-compose.yaml > /data/docker-compose.yaml.d
+      && md5sum /data/docker-compose.yaml*"
