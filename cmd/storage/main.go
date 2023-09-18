@@ -23,7 +23,7 @@ func main() {
 	defer stop()
 
 	//TODO move to client, retry
-	resp, err := http.Get(fmt.Sprintf("http://%s/register?host=localhost:8208", gatewayAddr))
+	resp, err := http.Get(fmt.Sprintf("http://%s/register?host=localhost:8208", *gatewayAddr))
 	if err != nil {
 		log.Fatal("cant register:", err)
 	}

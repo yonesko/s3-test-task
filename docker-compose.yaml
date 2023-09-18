@@ -10,6 +10,8 @@ services:
     deploy:
       replicas: 10
     build:
+      args:
+        GATEWAY_ADDR: gateway:8361
       dockerfile: storage.Dockerfile
 #    ports:
 #      - "8201:8208"
