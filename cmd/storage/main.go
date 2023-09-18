@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/samber/lo"
 	"github.com/yonesko/s3-test-task/internal/filestorage/api"
 	"github.com/yonesko/s3-test-task/internal/filestorage/memoryfilestorage"
 	"github.com/yonesko/s3-test-task/pkg/httplog"
@@ -23,7 +24,7 @@ func main() {
 	defer stop()
 
 	//TODO move to client, retry
-	resp, err := http.Get(fmt.Sprintf("http://%s/register?host=localhost:8208", *gatewayAddr))
+	resp, err := http.Get(fmt.Sprintf("http://%s/register?host=%s:8208", *gatewayAddr, lo.Must(os.Hostname())))
 	if err != nil {
 		log.Fatal("cant register:", err)
 	}

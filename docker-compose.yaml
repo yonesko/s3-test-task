@@ -4,14 +4,12 @@ services:
       dockerfile: gateway.Dockerfile
     ports:
       - "8361:8361"
-    depends_on:
-      - storage
   storage:
     deploy:
       replicas: 10
+    environment:
+      GATEWAY_ADDR: gateway:8361
     build:
-      args:
-        GATEWAY_ADDR: gateway:8361
       dockerfile: storage.Dockerfile
-#    ports:
-#      - "8201:8208"
+    depends_on:
+      - gateway
