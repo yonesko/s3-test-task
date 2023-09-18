@@ -11,12 +11,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 )
 
-var port = flag.Int("port", 8208, "port to listen")
+var gatewayAddr = flag.String("gateway", "localhost:8361", "gateway to register")
 
 func main() {
 	flag.Parse()
@@ -24,7 +23,7 @@ func main() {
 	defer stop()
 
 	//TODO move to client, retry
-	resp, err := http.Get("http://localhost:8361/register?host=localhost:" + strconv.Itoa(*port))
+	resp, err := http.Get(fmt.Sprintf("http://%s/register?host=localhost:8208", gatewayAddr))
 	if err != nil {
 		log.Fatal("cant register:", err)
 	}
@@ -32,7 +31,7 @@ func main() {
 		log.Fatal("cant register:", resp.Status)
 	}
 
-	server := http.Server{Addr: ":" + strconv.Itoa(*port), ReadTimeout: time.Second * 3}
+	server := http.Server{Addr: ":8208", ReadTimeout: time.Second * 3}
 
 	fileStorage := memoryfilestorage.NewStorage()
 	http.HandleFunc("/file", httplog.Log(func(writer http.ResponseWriter, request *http.Request) {

@@ -1,5 +1,15 @@
 services:
   gateway:
-    build: ""
+    build:
+      dockerfile: gateway.Dockerfile
     ports:
-      - "8000:5000"
+      - "8361:8361"
+    depends_on:
+      - storage
+  storage:
+    deploy:
+      replicas: 10
+    build:
+      dockerfile: storage.Dockerfile
+#    ports:
+#      - "8201:8208"
